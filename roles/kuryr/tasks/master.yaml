@@ -42,6 +42,12 @@
     src: cni-daemonset.yaml.j2
     dest: "{{ manifests_tmpdir.stdout }}/cni-daemonset.yaml"
 
+- name: Create kuryr-dns DaemonSet manifest
+  become: yes
+  template:
+    src: dns-daemonset.yaml.j2
+    dest: "{{ manifests_tmpdir.stdout }}/dns-daemonset.yaml"
+
 - name: Create kuryrnet CRD manifest
   become: yes
   template:
@@ -78,6 +84,16 @@
     namespace: "{{ kuryr_namespace }}"
     files:
     - "{{ manifests_tmpdir.stdout }}/configmap.yaml"
+  run_once: true
+
+- name: Apply kuryr-dns DaemonSet manifest
+  oc_obj:
+    state: present
+    kind: DaemonSet
+    name: "kuryr-dns-ds"
+    namespace: "{{ kuryr_namespace }}"
+    files:
+    - "{{ manifests_tmpdir.stdout }}/dns-daemonset.yaml"
   run_once: true
 
 - name: Apply Controller Deployment manifest
