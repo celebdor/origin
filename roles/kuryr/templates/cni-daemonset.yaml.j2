@@ -9,6 +9,8 @@ metadata:
     tier: node
     app: kuryr
   annotations:
+    kubernetes.io/description: |
+      Sets up the the Kuryr plus Neutron SDN
     image.openshift.io/triggers: |
       [
         {"from":{"kind":"ImageStreamTag","name":"node:v3.11"},"fieldPath":"spec.template.spec.initContainers[?(@.name==\"install-cni-plugins\")].image"},
@@ -39,9 +41,18 @@ spec:
           # Take over network functions on the node
           rm -Rf /host-cni-bin/*
           cp -Rf /opt/cni/bin/* /host-cni-bin/
+          cat > /host-cni-conf/99-loopback.conf <<EOF
+          {
+              "cniVersion": "0.3.0",
+              "name": "lo",
+              "type": "loopback"
+          }
+          EOF
         volumeMounts:
         - name: bin
           mountPath: /host-cni-bin
+        - name: net-conf
+          mountPath: /host-cni-conf
         securityContext:
           privileged: true
       containers:
